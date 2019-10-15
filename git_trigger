@@ -1,0 +1,54 @@
+webhook:
+  preconfigured:
+  - label: Github - Github Commit Status
+    type: githubStatus
+    enabled: true
+    description: Update a Github Commit Status. Consider using conditional on expression so this only runs when triggered from a git webhook 
+    method: POST
+    customHeaders:
+      Authorization:
+        - token REDACTED
+    url: https://api.github.com/repos/${parameterValues['gitOwner']}/${parameterValues['gitRepo']}/statuses/${parameterValues['gitSha']}
+    payload: |-
+      {
+        "state": "${parameterValues['gitStatus']}",
+        "target_url": "${parameterValues['gitTargetUrl']}",
+        "context": "${parameterValues['gitContext']}",
+        "description": "${parameterValues['gitDescription']}"
+      }
+    parameters:
+      - label: Git Commit SHA
+        name: gitSha
+        description: The Git Commit SHA to set a status for
+        defaultValue: ${trigger["hash"]}
+        type: string
+      - label: Status
+        name: gitStatus
+        description: (Required) The state of the status. Can be one of error, failure, pending, or success.
+        defaultValue: 'success'
+        type: string
+      - label: Target URL
+        name: gitTargetUrl
+        description: The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the source of the status. Defaults to the Spinnaker URL
+        defaultValue: https://spin-dev.fetch-ai.com/#/applications/${execution['application']}/executions/details/${execution['id']}
+        type: string
+      - label: Context
+        name: gitContext
+        description: A string label to differentiate this status from the status of other systems.
+        defaultValue: spinnaker
+        type: string
+      - label: Git Owner
+        name: gitOwner
+        description: The Organisation/User that owns the Repo
+        defaultValue: ${trigger["project"]}
+        type: string
+      - label: Git Repo
+        name: gitRepo
+        description: The Repo name
+        defaultValue: ${trigger["slug"]}
+        type: string
+      - label: Desscription
+        name: gitDescription
+        description: A short description of the status.
+        defaultValue: ""
+        type: string
